@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Gateway Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e1e5e9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(15, 15, 25, 0.95);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed, #ec4899);
+            border-radius: 2px;
+        }
+        
+        .header h1 {
+            color: #ffffff;
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+        
+        .header p {
+            color: #9ca3af;
+            font-size: 1.2em;
+            font-weight: 400;
+        }
+        
+        .auth-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 50px;
+            transition: all 0.5s ease;
+        }
+        
+        .auth-section.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            max-height: 0;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+        
+        .auth-card {
+            background: rgba(30, 30, 45, 0.8);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .auth-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(79, 70, 229, 0.3);
+        }
+        
+        .auth-card h3 {
+            color: #ffffff;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px 18px;
+            background: rgba(15, 15, 25, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 15px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: rgba(15, 15, 25, 1);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .form-group input::placeholder {
+            color: #6b7280;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .user-info {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-info h4 {
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .user-info p {
+            color: #d1d5db;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .api-section {
+            margin-top: 40px;
+        }
+        
+        .api-section h2 {
+            color: #ffffff;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .api-endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .endpoint-card {
+            background: rgba(30, 30, 45, 0.6);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .endpoint-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+        }
+        
+        .endpoint-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+            border-color: rgba(79, 70, 229, 0.3);
+        }
+        
+        .endpoint-card h4 {
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .endpoint-card p {
+            color: #9ca3af;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .role-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .role-admin { 
+            background: linear-gradient(45deg, #dc2626, #b91c1c);
+            color: #ffffff;
+        }
+        .role-premium { 
+            background: linear-gradient(45deg, #d97706, #b45309);
+            color: #ffffff;
+        }
+        .role-basic { 
+            background: linear-gradient(45deg, #059669, #047857);
+            color: #ffffff;
+        }
+        
+        .test-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-top: 15px;
+        }
+        
+        .test-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .response-container {
+            margin-top: 40px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .response-header {
+            background: linear-gradient(45deg, #1f2937, #374151);
+            padding: 20px 25px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .response-header h3 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .response-body {
+            background: #0f172a;
+            padding: 25px;
+            border-radius: 0 0 12px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+        }
+        
+        .response-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .response-meta-item {
+            background: rgba(30, 30, 45, 0.8);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        
+        .response-meta-item strong {
+            color: #60a5fa;
+        }
+        
+        .response-content {
+            background: #020617;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .response-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .response-content::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+        }
+        
+        .response-content::-webkit-scrollbar-thumb {
+            background: rgba(79, 70, 229, 0.5);
+            border-radius: 4px;
+        }
+        
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .alert-success { 
+            background: linear-gradient(45deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+            color: #10b981;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .alert-error { 
+            background: linear-gradient(45deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        .docs-link {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .docs-link a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            padding: 15px 30px;
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .docs-link a:hover {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+        
+        .rate-limit-btn {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            margin: 30px auto;
+            display: block;
+            width: auto;
+            padding: 12px 24px;
+            font-weight: 600;
+        }
+        
+        .rate-limit-btn:hover {
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .auth-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .api-endpoints {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .response-meta {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 API Gateway</h1>
+            <p>Intelligent API Management with Authentication & Rate Limiting</p>
+        </div>
+        
+        <div id="userInfo" class="user-info">
+            <h4>👋 Welcome back!</h4>
+            <p id="userDetails"></p>
+            <button onclick="logout()" class="btn" style="width: auto; padding: 12px 24px;">Logout</button>
+        </div>
+        
+        <div id="authSection" class="auth-section">
+            <div class="auth-card">
+                <h3>🔐 Register</h3>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>Email Address:</label>
+                        <input type="email" id="regEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="regPassword" placeholder="Create a password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Role:</label>
+                        <select id="regRole">
+                            <option value="basic">Basic User</option>
+                            <option value="premium">Premium User</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Create Account</button>
+                </form>
+            </div>
+            
+            <div class="auth-card">
+                <h3>🔑 Login</h3>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Email Address:</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn">Sign In</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h2>🛠️ API Endpoints</h2>
+            <div class="api-endpoints">
+                <div class="endpoint-card">
+                    <h4>GET /service-a/data</h4>
+                    <p>Public data accessible to all authenticated users with basic information</p>
+                    <span class="role-badge role-basic">All Users</span>
+                    <button class="test-btn" onclick="testEndpoint('/service-a/data')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /service-b/premium-data</h4>
+                    <p>Premium data accessible to premium and admin users only with enhanced features</p>
+                    <span class="role-badge role-premium">Premium + Admin</span>
+                    <button class="test-btn" onclick="testEndpoint('/service-b/premium-data')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /service-c/admin-data</h4>
+                    <p>Admin-only data with sensitive information and system configurations</p>
+                    <span class="role-badge role-admin">Admin Only</span>
+                    <button class="test-btn" onclick="testEndpoint('/service-c/admin-data')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /data</h4>
+                    <p>Data microservice endpoint for general application data retrieval</p>
+                    <span class="role-badge role-basic">All Users</span>
+                    <button class="test-btn" onclick="testEndpoint('/data')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /notifications</h4>
+                    <p>Notifications microservice for premium users and administrators</p>
+                    <span class="role-badge role-premium">Premium + Admin</span>
+                    <button class="test-btn" onclick="testEndpoint('/notifications')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /user-profile</h4>
+                    <p>User profile microservice for managing user account information</p>
+                    <span class="role-badge role-basic">All Users</span>
+                    <button class="test-btn" onclick="testEndpoint('/user-profile')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /admin/logs</h4>
+                    <p>View request logs with pagination for system monitoring</p>
+                    <span class="role-badge role-admin">Admin Only</span>
+                    <button class="test-btn" onclick="testEndpoint('/admin/logs')">Test Endpoint</button>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h4>GET /admin/users</h4>
+                    <p>View all users in the system for administrative purposes</p>
+                    <span class="role-badge role-admin">Admin Only</span>
+                    <button class="test-btn" onclick="testEndpoint('/admin/users')">Test Endpoint</button>
+                </div>
+            </div>
+            
+            <button class="btn rate-limit-btn" onclick="testRateLimit()">
+                ⚡ Test Rate Limiting
+            </button>
+        </div>
+        
+        <div id="responseContainer" class="response-container">
+            <div class="response-header">
+                <h3>📡 API Response</h3>
+            </div>
+            <div class="response-body">
+                <div id="responseMeta" class="response-meta"></div>
+                <div id="responseContent" class="response-content"></div>
+            </div>
+        </div>
+        
+        <div class="docs-link">
+            <a href="/docs" target="_blank">
+                📚 View Swagger API Documentation
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // Check if user is logged in on page load
+        if (authToken) {
+            checkAuthStatus();
+        }
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, role })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('🎉 Registration successful! Please login to continue.', 'success');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showAlert(`❌ ${data.detail || 'Registration failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+            }
+        });
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = data.user;
+                    showUserInfo();
+                    hideAuthForms();
+                    showAlert('✅ Login successful! Welcome to API Gateway.', 'success');
+                    document.getElementById('loginForm').reset();
+                } else {
+                    showAlert(`❌ ${data.detail || 'Login failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+            }
+        });
+
+        // Check authentication status
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    showUserInfo();
+                    hideAuthForms();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                logout();
+            }
+        }
+
+        // Show user info
+        function showUserInfo() {
+            if (currentUser) {
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userDetails').innerHTML = `
+                    <strong>📧 Email:</strong> ${currentUser.email}<br>
+                    <strong>🏷️ Role:</strong> <span class="role-badge role-${currentUser.role}">${currentUser.role.toUpperCase()}</span><br>
+                    <strong>🆔 User ID:</strong> ${currentUser.id}
+                `;
+            }
+        }
+
+        // Hide authentication forms
+        function hideAuthForms() {
+            const authSection = document.getElementById('authSection');
+            authSection.classList.add('hidden');
+        }
+
+        // Show authentication forms
+        function showAuthForms() {
+            const authSection = document.getElementById('authSection');
+            authSection.classList.remove('hidden');
+        }
+
+        // Logout function
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('responseContainer').style.display = 'none';
+            showAuthForms();
+            showAlert('👋 Logged out successfully', 'success');
+        }
+
+        // Test endpoint function
+        async function testEndpoint(endpoint) {
+            if (!authToken) {
+                showAlert('🔐 Please login first to test endpoints', 'error');
+                return;
+            }
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                const data = await response.json();
+                
+                // Show response in modern UI
+                showResponse(endpoint, response, data, responseTime);
+                
+                if (!response.ok) {
+                    showAlert(`❌ Error ${response.status}: ${data.detail || 'Request failed'}`, 'error');
+                }
+                
+            } catch (error) {
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+                showResponse(endpoint, null, { error: error.message }, responseTime);
+            }
+        }
+
+        // Show response in modern UI
+        function showResponse(endpoint, response, data, responseTime) {
+            const container = document.getElementById('responseContainer');
+            const meta = document.getElementById('responseMeta');
+            const content = document.getElementById('responseContent');
+            
+            container.style.display = 'block';
+            
+            // Response metadata
+            const statusColor = response && response.ok ? '#10b981' : '#ef4444';
+            const statusText = response ? `${response.status} ${response.statusText}` : 'Network Error';
+            
+            meta.innerHTML = `
+                <div class="response-meta-item">
+                    <strong>Endpoint:</strong> <span style="color: #60a5fa;">${endpoint}</span>
+                </div>
+                <div class="response-meta-item">
+                    <strong>Status:</strong> <span style="color: ${statusColor};">${statusText}</span>
+                </div>
+                <div class="response-meta-item">
+                    <strong>Response Time:</strong> <span style="color: #fbbf24;">${responseTime}ms</span>
+                </div>
+                <div class="response-meta-item">
+                    <strong>Timestamp:</strong> <span style="color: #a78bfa;">${new Date().toLocaleTimeString()}</span>
+                </div>
+            `;
+            
+            // Response content with syntax highlighting
+            content.textContent = JSON.stringify(data, null, 2);
+            
+            // Scroll to response
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show alert function
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.header').nextSibling);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        // Test rate limiting
+        function testRateLimit() {
+            if (!authToken) {
+                showAlert('🔐 Please login first to test rate limiting', 'error');
+                return;
+            }
+            
+            showAlert('⚡ Testing rate limiting with 10 rapid requests...', 'success');
+            
+            // Make multiple rapid requests to test rate limiting
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => testEndpoint('/data'), i * 100);
+            }
+        }
+    </script>
+</body>
+</html>
