@@ -461,6 +461,154 @@
                 flex-direction: column;
             }
         }
+        
+        /* Tabbed login/register styles */
+        .tabbed-auth {
+            max-width: 500px;
+            margin: 0 auto 40px auto;
+            background: rgba(30, 30, 45, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0 0 30px 0;
+        }
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1.5px solid #232946;
+        }
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 18px 0 14px 0;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #9ca3af;
+            background: none;
+            border: none;
+            outline: none;
+            transition: color 0.2s, background 0.2s;
+            border-radius: 20px 20px 0 0;
+        }
+        .auth-tab.active {
+            color: #4f46e5;
+            background: #181825;
+            border-bottom: 2.5px solid #4f46e5;
+        }
+        .tab-content {
+            padding: 30px 30px 0 30px;
+        }
+        .tab-content form {
+            margin-bottom: 0;
+        }
+        @media (max-width: 700px) {
+            .tabbed-auth { padding: 0 0 20px 0; }
+            .tab-content { padding: 20px 10px 0 10px; }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(20, 20, 30, 0.85);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .auth-modal {
+            background: rgba(30, 30, 45, 0.98);
+            border-radius: 28px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+            border: 1.5px solid #232946;
+            max-width: 420px;
+            width: 95vw;
+            padding: 0 0 30px 0;
+            position: relative;
+            animation: modalPop 0.4s cubic-bezier(.4,2,.3,1);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.92) translateY(40px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .auth-modal .close-btn {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            background: none;
+            border: none;
+            color: #a5b4fc;
+            font-size: 1.7em;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.2s;
+        }
+        .auth-modal .close-btn:hover {
+            color: #ec4899;
+        }
+        .auth-modal .auth-tabs {
+            display: flex;
+            border-bottom: 1.5px solid #232946;
+            margin-bottom: 0;
+        }
+        .auth-modal .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 20px 0 16px 0;
+            cursor: pointer;
+            font-size: 1.15em;
+            font-weight: 700;
+            color: #9ca3af;
+            background: none;
+            border: none;
+            outline: none;
+            transition: color 0.2s, background 0.2s;
+            border-radius: 28px 28px 0 0;
+        }
+        .auth-modal .auth-tab.active {
+            color: #7c3aed;
+            background: #181825;
+            border-bottom: 2.5px solid #7c3aed;
+        }
+        .auth-modal .tab-content {
+            padding: 32px 32px 0 32px;
+        }
+        .auth-modal .tab-content form {
+            margin-bottom: 0;
+        }
+        @media (max-width: 600px) {
+            .auth-modal { padding: 0 0 18px 0; }
+            .auth-modal .tab-content { padding: 18px 8px 0 8px; }
+        }
+
+        .quick-links {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .quick-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            padding: 15px 30px;
+            border: 2px solid rgba(96, 165, 250, 0.3);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0 10px;
+        }
+        .quick-link:hover {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -468,6 +616,11 @@
         <div class="header">
             <h1>🚀 API Gateway</h1>
             <p>Intelligent API Management with Authentication & Rate Limiting</p>
+            <div style="margin:30px auto 0 auto;display:flex;justify-content:center;gap:18px;">
+                <button id="openSignInModal" class="btn" style="max-width:160px;">Sign In</button>
+                <button id="openRegisterModal" class="btn" style="max-width:160px;">Register</button>
+                <button id="adminDashboardBtn" class="btn" style="max-width:160px;display:none;background:linear-gradient(45deg, #dc2626, #b91c1c);">Admin Panel</button>
+            </div>
         </div>
         
         <div id="userInfo" class="user-info">
@@ -476,32 +629,14 @@
             <button onclick="logout()" class="btn" style="width: auto; padding: 12px 24px;">Logout</button>
         </div>
         
-        <div id="authSection" class="auth-section">
-            <div class="auth-card">
-                <h3>🔐 Register</h3>
-                <form id="registerForm">
-                    <div class="form-group">
-                        <label>Email Address:</label>
-                        <input type="email" id="regEmail" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password:</label>
-                        <input type="password" id="regPassword" placeholder="Create a password" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Account Role:</label>
-                        <select id="regRole">
-                            <option value="basic">Basic User</option>
-                            <option value="premium">Premium User</option>
-                            <option value="admin">Administrator</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn">Create Account</button>
-                </form>
-            </div>
-            
-            <div class="auth-card">
-                <h3>🔑 Login</h3>
+        <!-- Tabbed login/register (hidden, replaced by modal) -->
+        <div id="tabAuth" class="tabbed-auth" style="display:none;"></div>
+
+        <!-- Sign In Modal -->
+        <div class="modal-overlay" id="signInModal">
+            <div class="auth-modal">
+                <button class="close-btn" onclick="closeSignInModal()">&times;</button>
+                <h3 style="text-align:center;margin:32px 0 18px 0;font-size:1.5em;color:#fff;font-weight:700;">Sign In</h3>
                 <form id="loginForm">
                     <div class="form-group">
                         <label>Email Address:</label>
@@ -515,7 +650,40 @@
                 </form>
             </div>
         </div>
-        
+        <!-- Register Modal -->
+        <div class="modal-overlay" id="registerModal">
+            <div class="auth-modal">
+                <button class="close-btn" onclick="closeRegisterModal()">&times;</button>
+                <h3 style="text-align:center;margin:32px 0 18px 0;font-size:1.5em;color:#fff;font-weight:700;">Register</h3>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>Email Address:</label>
+                        <input type="email" id="regEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="regPassword" placeholder="Create a password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Role:</label>
+                        <div class="role-selector">
+                            <div class="role-option selected" data-role="basic" onclick="selectRole(this)">
+                                <span class="role-emoji">🟢</span>Basic
+                            </div>
+                            <div class="role-option" data-role="premium" onclick="selectRole(this)">
+                                <span class="role-emoji">🌟</span>Premium
+                            </div>
+                            <div class="role-option" data-role="admin" onclick="selectRole(this)">
+                                <span class="role-emoji">🛡️</span>Admin
+                            </div>
+                        </div>
+                        <input type="hidden" id="regRole" value="basic">
+                    </div>
+                    <button type="submit" class="btn">Create Account</button>
+                </form>
+            </div>
+        </div>
+
         <div class="api-section">
             <h2>🛠️ API Endpoints</h2>
             <div class="api-endpoints">
@@ -596,6 +764,14 @@
                 📚 View Swagger API Documentation
             </a>
         </div>
+
+        <div class="quick-links">
+            <a href="/dashboard" class="quick-link">🖥️ Dashboard</a>
+            <a href="/docs" class="quick-link">📚 API Docs</a>
+            <a href="/health" class="quick-link">🏥 Health</a>
+            <a href="https://github.com/" class="quick-link" target="_blank">🌐 GitHub</a>
+            <a href="/admin/dashboard" class="quick-link" id="adminDashboardLink" style="display: none;">👑 Admin Panel</a>
+        </div>
     </div>
 
     <script>
@@ -608,91 +784,19 @@
             checkAuthStatus();
         }
 
-        // Register form handler
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const role = document.getElementById('regRole').value;
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password, role })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showAlert('🎉 Registration successful! Please login to continue.', 'success');
-                    document.getElementById('registerForm').reset();
-                } else {
-                    showAlert(`❌ ${data.detail || 'Registration failed'}`, 'error');
-                }
-            } catch (error) {
-                showAlert(`🔌 Network error: ${error.message}`, 'error');
-            }
-        });
-
-        // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    authToken = data.access_token;
-                    localStorage.setItem('authToken', authToken);
-                    currentUser = data.user;
-                    showUserInfo();
-                    hideAuthForms();
-                    showAlert('✅ Login successful! Welcome to API Gateway.', 'success');
-                    document.getElementById('loginForm').reset();
-                } else {
-                    showAlert(`❌ ${data.detail || 'Login failed'}`, 'error');
-                }
-            } catch (error) {
-                showAlert(`🔌 Network error: ${error.message}`, 'error');
-            }
-        });
-
-        // Check authentication status
-        async function checkAuthStatus() {
-            try {
-                const response = await fetch(`${API_BASE}/auth/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                if (response.ok) {
-                    currentUser = await response.json();
-                    showUserInfo();
-                    hideAuthForms();
-                } else {
-                    logout();
-                }
-            } catch (error) {
-                logout();
-            }
+        // Tabbed login/register logic
+        function showTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelector(`.auth-tab[data-tab="${tab}"]`).classList.add('active');
+            document.querySelector(`.tab-content[data-tab="${tab}"]`).classList.remove('hidden');
         }
-
+        // Role selector logic
+        function selectRole(el) {
+            document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('regRole').value = el.getAttribute('data-role');
+        }
         // Show user info
         function showUserInfo() {
             if (currentUser) {
@@ -702,21 +806,94 @@
                     <strong>🏷️ Role:</strong> <span class="role-badge role-${currentUser.role}">${currentUser.role.toUpperCase()}</span><br>
                     <strong>🆔 User ID:</strong> ${currentUser.id}
                 `;
+                document.getElementById('tabAuth').style.display = 'none';
+                
+                // Show admin dashboard button for admin users
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminDashboardBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('adminDashboardBtn').style.display = 'none';
+                }
             }
         }
-
-        // Hide authentication forms
         function hideAuthForms() {
-            const authSection = document.getElementById('authSection');
-            authSection.classList.add('hidden');
+            document.getElementById('tabAuth').style.display = 'none';
         }
-
-        // Show authentication forms
         function showAuthForms() {
-            const authSection = document.getElementById('authSection');
-            authSection.classList.remove('hidden');
+            document.getElementById('tabAuth').style.display = 'block';
         }
-
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, role })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert('🎉 Registration successful! Please login to continue.', 'success');
+                    document.getElementById('registerForm').reset();
+                    showTab('login');
+                } else {
+                    showAlert(`❌ ${data.detail || 'Registration failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+            }
+        });
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = data.user;
+                    showUserInfo();
+                    showAlert('✅ Login successful! Welcome to API Gateway.', 'success');
+                    document.getElementById('loginForm').reset();
+                } else {
+                    showAlert(`❌ ${data.detail || 'Login failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+            }
+        });
+        // Check authentication status
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                if (response.ok) {
+                    currentUser = await response.json();
+                    showUserInfo();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                logout();
+            }
+        }
         // Logout function
         function logout() {
             authToken = null;
@@ -727,7 +904,6 @@
             showAuthForms();
             showAlert('👋 Logged out successfully', 'success');
         }
-
         // Test endpoint function
         async function testEndpoint(endpoint) {
             if (!authToken) {
@@ -755,14 +931,49 @@
                     showAlert(`❌ Error ${response.status}: ${data.detail || 'Request failed'}`, 'error');
                 }
                 
+                // Log the request to the server
+                try {
+                    await fetch(`${API_BASE}/admin/log-request`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            endpoint: endpoint,
+                            status_code: response.status,
+                            response_time: responseTime
+                        })
+                    });
+                } catch (logError) {
+                    console.error('Failed to log request:', logError);
+                }
+                
             } catch (error) {
                 const endTime = Date.now();
                 const responseTime = endTime - startTime;
                 showAlert(`🔌 Network error: ${error.message}`, 'error');
                 showResponse(endpoint, null, { error: error.message }, responseTime);
+                
+                // Log the failed request
+                try {
+                    await fetch(`${API_BASE}/admin/log-request`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            endpoint: endpoint,
+                            status_code: 0,
+                            response_time: responseTime
+                        })
+                    });
+                } catch (logError) {
+                    console.error('Failed to log request:', logError);
+                }
             }
         }
-
         // Show response in modern UI
         function showResponse(endpoint, response, data, responseTime) {
             const container = document.getElementById('responseContainer');
@@ -796,7 +1007,6 @@
             // Scroll to response
             container.scrollIntoView({ behavior: 'smooth' });
         }
-
         // Show alert function
         function showAlert(message, type) {
             // Remove existing alerts
@@ -812,7 +1022,6 @@
             // Auto remove after 5 seconds
             setTimeout(() => alert.remove(), 5000);
         }
-
         // Test rate limiting
         function testRateLimit() {
             if (!authToken) {
@@ -827,6 +1036,100 @@
                 setTimeout(() => testEndpoint('/data'), i * 100);
             }
         }
+
+        // Modal logic for separate sign in and register
+        const signInModal = document.getElementById('signInModal');
+        const registerModal = document.getElementById('registerModal');
+        const openSignInModalBtn = document.getElementById('openSignInModal');
+        const openRegisterModalBtn = document.getElementById('openRegisterModal');
+        function openSignInModal() {
+            signInModal.classList.add('active');
+            registerModal.classList.remove('active');
+        }
+        function openRegisterModal() {
+            registerModal.classList.add('active');
+            signInModal.classList.remove('active');
+        }
+        function closeSignInModal() {
+            signInModal.classList.remove('active');
+        }
+        function closeRegisterModal() {
+            registerModal.classList.remove('active');
+        }
+        openSignInModalBtn.addEventListener('click', openSignInModal);
+        openRegisterModalBtn.addEventListener('click', openRegisterModal);
+        signInModal.addEventListener('click', function(e) {
+            if (e.target === signInModal) closeSignInModal();
+        });
+        registerModal.addEventListener('click', function(e) {
+            if (e.target === registerModal) closeRegisterModal();
+        });
+
+        // Use modal forms for login/register logic
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, role })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showAlert('🎉 Registration successful! Please login to continue.', 'success');
+                    document.getElementById('registerForm').reset();
+                    closeRegisterModal();
+                    openSignInModal();
+                } else {
+                    showAlert(`❌ ${data.detail || 'Registration failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+            }
+        });
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = data.user;
+                    showUserInfo();
+                    showAlert('✅ Login successful! Welcome to API Gateway.', 'success');
+                    document.getElementById('loginForm').reset();
+                    closeSignInModal();
+                } else {
+                    showAlert(`❌ ${data.detail || 'Login failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`🔌 Network error: ${error.message}`, 'error');
+            }
+        });
+
+        // Show modal if not logged in
+        if (!authToken) {
+            tabAuth.style.display = 'none';
+        }
+
+        // Add click handler for admin dashboard button
+        document.getElementById('adminDashboardBtn').addEventListener('click', () => {
+            window.location.href = '/admin/dashboard';
+        });
     </script>
 </body>
 </html>
