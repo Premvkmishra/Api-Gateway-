@@ -26,4 +26,9 @@ class LogResponse(BaseModel):
     timestamp: datetime
 
 class UserUpdate(BaseModel):
-    role: str 
+    role: str
+
+class LogRequest(BaseModel):
+    endpoint: str
+    status_code: int
+    response_time: float 
