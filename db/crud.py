@@ -2,6 +2,8 @@ from fastapi import HTTPException
 from mysql.connector import Error
 from db.connection import get_db_connection
 from core.security import hash_password, verify_password
+import aiomysql
+from db.connection import get_async_db_connection
 
 # User CRUD
 
@@ -68,4 +70,22 @@ def log_request(user_id: int, endpoint: str, status_code: int, response_time: fl
     except Error as e:
         print(f"Logging error: {e}")
     finally:
-        connection.close() 
+        connection.close()
+
+async def async_create_user(email: str, password: str, role: str = "basic"):
+    pool = await get_async_db_connection()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            try:
+                hashed_password = hash_password(password)
+                query = "INSERT INTO users (email, hashed_password, role) VALUES (%s, %s, %s)"
+                await cursor.execute(query, (email, hashed_password, role))
+                await conn.commit()
+                user_id = cursor.lastrowid
+                return user_id
+            except aiomysql.IntegrityError as e:
+                if "Duplicate entry" in str(e):
+                    raise HTTPException(status_code=400, detail="Email already registered")
+                raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Database error: {str(e)}") 

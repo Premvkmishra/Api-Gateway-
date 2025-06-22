@@ -1,5 +1,21 @@
 # IntelliRoute - Intelligent API Gateway
 
+<!-- Screenshots -->
+
+<p align="center">
+  <img src="assets/homepage.png" alt="Homepage" width="700"/>
+  <br><b>Homepage</b>
+  <br><br>
+  <img src="assets/dashbaord.png" alt="Main Dashboard" width="700"/>
+  <br><b>Main Dashboard</b>
+  <br><br>
+  <img src="assets/admindashboard.png" alt="Admin Dashboard" width="700"/>
+  <br><b>Admin Dashboard</b>
+  <br><br>
+  <img src="assets/response.png" alt="API Response Example" width="700"/>
+  <br><b>API Response Example</b>
+</p>
+
 A comprehensive API gateway built with FastAPI featuring authentication, rate limiting, role-based access control, and request logging.
 
 ## Features

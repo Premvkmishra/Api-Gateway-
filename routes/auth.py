@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from db.crud import create_user, authenticate_user
+from db.crud import create_user, authenticate_user, async_create_user
 from models.schemas import UserCreate, UserLogin
 from core.security import create_access_token
 from core.dependencies import get_current_user
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register")
 async def register(user: UserCreate):
-    user_id = create_user(user.email, user.password, user.role)
+    user_id = await async_create_user(user.email, user.password, user.role)
     return {"message": "User created successfully", "user_id": user_id}
 
 @router.post("/login")
