@@ -8,7 +8,7 @@ from mysql.connector import Error
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def admin_dashboard(current_user: dict = Depends(require_role(["admin"]))):
+async def admin_dashboard():
     with open("static/admin.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
